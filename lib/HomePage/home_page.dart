@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_poc/ResultPage/result.page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,6 +15,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ImagePicker _picker = ImagePicker();
+  late File originalFile;
 
   Future<String> _getBytes(String path) async {
     ByteData byteData = await rootBundle.load(path);
@@ -26,14 +28,21 @@ class _HomePageState extends State<HomePage> {
   void _captureImage() async {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.camera,
+      // maxHeight: 1024,
+      // maxWidth: 720,
       imageQuality: 100,
     );
 
     if (pickedFile != null) {
-      File file = File(pickedFile.path);
-      int bytesFile = await file.length();
-      double realFileSizeMb = bytesFile / 1000000;
-      print("This file has ${realFileSizeMb.toStringAsFixed(2)}Mb");
+      originalFile = File(pickedFile.path);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResultPage(
+            originalFile: originalFile,
+          ),
+        ),
+      );
     }
   }
 
@@ -42,40 +51,13 @@ class _HomePageState extends State<HomePage> {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Container(
-        width: size.width,
-        height: size.height,
-        decoration: const BoxDecoration(
-          color: Colors.white24,
-        ),
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const SizedBox(height: 200),
-            Center(
-              child: GestureDetector(
-                onTap: _captureImage,
-                child: Container(
-                  width: size.width * 0.7,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.black45,
-                    borderRadius: BorderRadius.circular(4),
-                    // border: Border.all(color: Colors.black38),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Selecione uma imagem*',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          ],
+      appBar: AppBar(
+        title: Text('POC Senff compressão de imagem'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: _captureImage,
+          child: Text('Selecionar imagem'),
         ),
       ),
     );
